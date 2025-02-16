@@ -7,16 +7,15 @@
 	"observability": {
 		"enabled": true
 	},
-
 	"durable_objects": {
 		"bindings": [
 			{
-				"name": "ANIMATION_SESSION",
-				"class_name": "AnimationSession"
+				"name": "ANIMATION_SESSION_DO",
+				"class_name": "AnimationSessionDO",
+				"script_name": "animation-service"
 			}
 		]
 	},
-
 	"kv_namespaces": [
 		{
 			"binding": "ANIMATION_KV",
