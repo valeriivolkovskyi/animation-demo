@@ -1,18 +1,20 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { AnimationSessionDO } from './infrastructure/cloudflare/AnimationSessionDO';
+
+export { AnimationSessionDO };
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+		const url = new URL(request.url);
+		const sessionId = url.pathname.split('/')[1];
+
+		const validSessions = ['session1', 'session2', 'session3'];
+
+		if (!validSessions.includes(sessionId)) {
+			return new Response('Session not found', { status: 404 });
+		}
+
+		const id = env.ANIMATION_SESSION_DO.idFromName(sessionId);
+		const stub = env.ANIMATION_SESSION_DO.get(id);
+		return stub.fetch(request);
 	},
 } satisfies ExportedHandler<Env>;

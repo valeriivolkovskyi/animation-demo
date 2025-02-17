@@ -11,11 +11,18 @@
 		"bindings": [
 			{
 				"name": "ANIMATION_SESSION_DO",
-				"class_name": "AnimationSessionDO",
-				"script_name": "animation-service"
+				"class_name": "AnimationSessionDO"
 			}
 		]
 	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": [
+				"AnimationSessionDO"
+			]
+		}
+	],
 	"kv_namespaces": [
 		{
 			"binding": "ANIMATION_KV",

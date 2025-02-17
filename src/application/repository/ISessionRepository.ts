@@ -1,7 +1,7 @@
-import { Session } from '../../domain/entity/Session';
+import { Character } from '../../domain/entity/Character';
 
 export interface ISessionRepository {
-	getSession(sessionId: string): Promise<Session | null>;
+	getCharacter(characterId: string): Promise<Character | undefined>;
 
-	saveSession(session: Session): Promise<void>;
+	updateCharacter(character: Character): Promise<void>;
 }

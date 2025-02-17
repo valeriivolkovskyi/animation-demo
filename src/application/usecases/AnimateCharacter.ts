@@ -1,35 +1,82 @@
-import { AnimateCharacterDTO } from '../data/AnimationCommand';
-import { ISessionRepository } from '../repository/ISessionRepository';
+import { AnimateCharacterCommand, CharacterCommandDTO } from '../data/CharacterCommandDTO';
 import { Character } from '../../domain/entity/Character';
-import { Session } from '../../domain/entity/Session';
-import { DomainError } from '../../domain/DomainError';
 import { ApplicationError } from '../ApplicationError';
+import { ISessionRepository } from '../repository/ISessionRepository';
 
 export interface AnimateCharacterUseCase {
-	execute(command: AnimateCharacterDTO): Promise<void>;
+	execute(command: CharacterCommandDTO): Promise<Character>;
 }
 
-export class AnimateCharacter {
+export interface ICommand {
+	execute(character: Character): void;
+}
+
+export class StartCommand implements ICommand {
+	execute(character: Character): void {
+		character.start();
+	}
+}
+
+export class StopCommand implements ICommand {
+	execute(character: Character): void {
+		character.stop();
+	}
+}
+
+export class RotateCommand implements ICommand {
+	execute(character: Character): void {
+		character.rotate();
+	}
+}
+
+export class MoveCommand implements ICommand {
+	execute(character: Character): void {
+		character.move();
+	}
+}
+
+export class ResetCommand implements ICommand {
+	execute(character: Character): void {
+		character.reset();
+	}
+}
+
+// Factory to map the AnimateCharacterCommand to the corresponding command class
+export class CommandFactory {
+	static getCommand(command: AnimateCharacterCommand): ICommand {
+		switch (command) {
+			case AnimateCharacterCommand.Start:
+				return new StartCommand();
+			case AnimateCharacterCommand.Stop:
+				return new StopCommand();
+			case AnimateCharacterCommand.Rotate:
+				return new RotateCommand();
+			case AnimateCharacterCommand.Move:
+				return new MoveCommand();
+			case AnimateCharacterCommand.Reset:
+				return new ResetCommand();
+			default:
+				// This case should never occur since our DTO enforces the enum type,
+				// but it's good to have a fallback.
+				throw new ApplicationError(`Invalid command: ${command}`);
+		}
+	}
+}
+
+export class AnimateCharacter implements AnimateCharacterUseCase {
 	constructor(private sessionRepository: ISessionRepository) {}
 
-	private async getSession(sessionId: string): Promise<Session> {
-		const session: Session | null = await this.sessionRepository.getSession(sessionId);
-		if (!session) {
-			throw new DomainError(`Session with id ${sessionId} not found.`);
-		}
-
-		return session;
-	}
-
-	public async execute(dto: AnimateCharacterDTO): Promise<Character> {
-		const session = await this.getSession(dto.sessionId);
-		const character = session.getCharacter(dto.characterId);
+	public async execute(dto: CharacterCommandDTO): Promise<Character> {
+		const character = await this.sessionRepository.getCharacter(dto.characterId);
 
 		if (!character) {
-			throw new ApplicationError(`Character with id ${dto.characterId} not found in session ${dto.sessionId}.`);
+			throw new ApplicationError(`Character with id ${dto.characterId} not found in session.`);
 		}
 
-		await this.sessionRepository.saveSession(session);
+		const commandInstance = CommandFactory.getCommand(dto.command);
+		commandInstance.execute(character);
+
+		await this.sessionRepository.updateCharacter(character);
 
 		return character;
 	}
