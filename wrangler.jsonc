@@ -26,7 +26,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "ANIMATION_KV",
-			"id": "0af39d5b3ebb4d509abb5eb9aebc0957"
+			"id": "$ANIMATION_KV_ID"
 		}
 	]
 }

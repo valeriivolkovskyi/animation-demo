@@ -38,6 +38,9 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 
 		this.sessionId = state.id.toString();
 		this.sessionRepo = new KVSessionRepository(env.ANIMATION_KV);
+
+		// init characters for domo purposes
+		this.sessionRepo.initialize();
 	}
 
 	async fetch(request: Request): Promise<Response> {

@@ -7,6 +7,7 @@ export default {
 		const url = new URL(request.url);
 		const sessionId = url.pathname.split('/')[1];
 
+		// sessions was hardcoded for demo purposes
 		const validSessions = ['session1', 'session2', 'session3'];
 
 		if (!validSessions.includes(sessionId)) {
