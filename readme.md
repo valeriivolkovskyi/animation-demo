@@ -13,6 +13,17 @@ InterfaceAdapters
 Infrastructure
 Domain
 
+This approach make possible to switch between cloud providers easily. All you need is
+adapt implement SessionRepository interface and interface adapter:
+
+```typescript
+interface ISessionRepository {
+	getCharacter(characterId: string): Promise<Character | undefined>;
+
+	updateCharacter(character: Character): Promise<void>;
+}
+```
+
 ### Sessions
 
 As session initialization isn't described in Task description I decided to hardcode a few
