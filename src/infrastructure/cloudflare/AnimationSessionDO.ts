@@ -4,7 +4,7 @@ import { KVSessionRepository } from './KVSessionRepository';
 import { CharacterStatus } from '../../domain/entity/Character';
 import { AnimateCharacterCommand, CharacterCommandDTO } from '../../application/data/CharacterCommandDTO';
 import { InfrastructureError } from '../InfrastructureError';
-import { checkAuth } from './checkAuth';
+import { checkAuth } from '../../utils/checkAuth';
 
 const MAX_MESSAGE_SIZE = 1000;
 const MAX_LOGS_SIZE = 100;

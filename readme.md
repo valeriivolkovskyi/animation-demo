@@ -6,6 +6,13 @@ The demo animation service simulates a session where animated characters (e.g., 
 perform actions based on commands received via a WebSocket. The character’s state is persisted using
 Cloudflare’s KV storage. The application validates business rules on state transitions.
 
+### Architecture
+
+Animation service separated to several layers (see scheme):
+InterfaceAdapters
+Infrastructure
+Domain
+
 ### Sessions
 
 As session initialization isn't described in Task description I decided to hardcode a few
@@ -38,9 +45,7 @@ npm install
 - Run `npx wrangler login` to authorize you Cloudflare account.
 - create `.env` file and add your `ANIMATION_KV_ID` to access to you KV storage.
 
-### Running Locally
-
-Run the application locally using wrangler:
+3. Run the application locally using wrangler:
 
 ```
 npx wrangler dev
@@ -58,6 +63,8 @@ password: `admin`.
 GET `/{sessionId}/state` - list all characters with their current state
 GET `/{sessionId}/characters` - list all active characters
 GET `/{sessionId}/logs` - logs
+
+Try tp ppen link in your browser`http://localhost:8787/session1/state`
 
 ## WebSocket Endpoint
 
