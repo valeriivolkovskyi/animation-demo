@@ -36,9 +36,9 @@ interface ICharacterRepository {
 	  changes repository will not affect use case,etc.
 	- We use DI to not depend on infrastructure
 	- We can change implementation using substitution principle
-        - Application is too small to break Interface Segregation rule :)
+	- Application is too small to break Interface Segregation rule :)
 - Clean Architecture
-- Command and Factory patterns - for better scalability in future
+- Command and Factory patterns - for better scalability in future. It makes possible to perform animations queue and manage history in case it needed. 
 
 ### Sessions
 
