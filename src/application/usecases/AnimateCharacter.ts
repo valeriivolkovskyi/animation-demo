@@ -1,7 +1,7 @@
 import { AnimateCharacterCommand, CharacterCommandDTO } from '../data/CharacterCommandDTO';
 import { Character } from '../../domain/entity/Character';
 import { ApplicationError } from '../ApplicationError';
-import { ISessionRepository } from '../repository/ISessionRepository';
+import { ICharacterRepository } from '../repository/ICharacterRepository';
 
 export interface AnimateCharacterUseCase {
 	execute(command: CharacterCommandDTO): Promise<Character>;
@@ -64,7 +64,7 @@ export class CommandFactory {
 }
 
 export class AnimateCharacter implements AnimateCharacterUseCase {
-	constructor(private sessionRepository: ISessionRepository) {}
+	constructor(private sessionRepository: ICharacterRepository) {}
 
 	public async execute(dto: CharacterCommandDTO): Promise<Character> {
 		const character = await this.sessionRepository.getCharacter(dto.characterId);

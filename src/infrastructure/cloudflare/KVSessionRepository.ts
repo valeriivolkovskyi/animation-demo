@@ -1,4 +1,4 @@
-import { ISessionRepository } from '../../application/repository/ISessionRepository';
+import { ICharacterRepository } from '../../application/repository/ICharacterRepository';
 import { Character, CharacterStatus } from '../../domain/entity/Character';
 import { ApplicationError } from '../../application/ApplicationError';
 import { InfrastructureError } from '../InfrastructureError';
@@ -9,7 +9,7 @@ interface StoredCharacter {
 	status: string;
 }
 
-export class KVSessionRepository implements ISessionRepository {
+export class KVSessionRepository implements ICharacterRepository {
 	constructor(private kv: KVNamespace) {}
 
 	// for debug purposes only

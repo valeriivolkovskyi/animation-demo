@@ -8,21 +8,36 @@ Cloudflare’s KV storage. The application validates business rules on state tra
 
 ### Architecture
 
-Animation service separated to several layers (see scheme):
-InterfaceAdapters
-Infrastructure
-Domain
+Animation service separated to several layers (see diagram):
 
-This approach make possible to switch between cloud providers easily. All you need is
-adapt implement SessionRepository interface and interface adapter:
+- Controllers - handling endpoints
+- Infrastructure - data transfer
+- Application - entities orchestration and application logic
+- Domain - core business logic
+
+![Dependency diagram](img_1.png)
+
+This approach make possible to switch between cloud providers by implementing
+another endpoint controller and ICharacterRepository interface:
 
 ```typescript
-interface ISessionRepository {
+interface ICharacterRepository {
 	getCharacter(characterId: string): Promise<Character | undefined>;
 
 	updateCharacter(character: Character): Promise<void>;
 }
 ```
+
+#### Applied principles and technics
+
+- SOLID:
+	- Each module in service has one responsibility
+	- Changes in DO will not affect repository,
+	  changes repository will not affect use case,etc.
+	- We use DI to not depend on infrastructure
+	- We can change implementation using substitution principle
+- Clean Architecture
+- Command and Factory patterns - for better scalability in future
 
 ### Sessions
 
@@ -82,7 +97,7 @@ Try tp ppen link in your browser`http://localhost:8787/session1/state`
 ### Usage:
 
 1. Establish a WebSocket Connection:
-   Use a WebSocket client to connect to ws://localhost:8787/{sessionId}/ws.
+   Use a WebSocket client to connect to `ws://localhost:8787/{sessionId}/ws`.
 
 2. Send Commands:
    Send JSON messages in the following format to execute character commands:
