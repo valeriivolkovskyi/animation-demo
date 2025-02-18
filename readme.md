@@ -36,6 +36,7 @@ interface ICharacterRepository {
 	  changes repository will not affect use case,etc.
 	- We use DI to not depend on infrastructure
 	- We can change implementation using substitution principle
+        - Application is too small to break Interface Segregation rule :)
 - Clean Architecture
 - Command and Factory patterns - for better scalability in future
 
