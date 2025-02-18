@@ -126,7 +126,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 		});
 
 		webSocket.addEventListener('error', (err) => {
-			console.error('WebSocket error:', err);
+			console.error('InfrastructureError: WebSocket error:', err);
 			this.clients.delete(webSocket);
 		});
 	}
@@ -134,7 +134,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 	private async handleMessage(message: any, sourceSocket: WebSocket): Promise<void> {
 		// ensure the message is a string and within a reasonable size.
 		if (typeof message !== 'string' || message.length > MAX_MESSAGE_SIZE) {
-			sourceSocket.send(JSON.stringify({ error: 'Invalid message format or size.' }));
+			sourceSocket.send(JSON.stringify({ error: 'InfrastructureError: Invalid message format or size.' }));
 			return;
 		}
 
@@ -142,13 +142,13 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 		try {
 			data = JSON.parse(message);
 		} catch (err) {
-			sourceSocket.send(JSON.stringify({ error: 'Invalid JSON format.' }));
+			sourceSocket.send(JSON.stringify({ error: 'InfrastructureError: Invalid JSON format.' }));
 			return;
 		}
 
 		// Validate required fields.
 		if (!data.characterId || typeof data.characterId !== 'string' || !data.command || typeof data.command !== 'string') {
-			sourceSocket.send(JSON.stringify({ error: 'Missing or invalid characterId or command.' }));
+			sourceSocket.send(JSON.stringify({ error: 'InfrastructureError: Missing or invalid characterId or command.' }));
 			return;
 		}
 
@@ -173,7 +173,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 				}),
 			);
 		} catch (err: any) {
-			sourceSocket.send(JSON.stringify({ error: err.message }));
+			sourceSocket.send(JSON.stringify({ error: `${err.type}: ${err.message}` }));
 		}
 	}
 
@@ -182,7 +182,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 			try {
 				client.send(message);
 			} catch (err) {
-				console.error('Error broadcasting message:', err);
+				console.error('InfrastructureError: Error broadcasting message:', err);
 				this.clients.delete(client);
 			}
 		}
