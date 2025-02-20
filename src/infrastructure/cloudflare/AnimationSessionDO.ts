@@ -1,13 +1,13 @@
 import { AnimateCharacter } from '../../application/usecases/AnimateCharacter';
 import { DurableObject } from 'cloudflare:workers';
 import { KVSessionRepository } from './KVSessionRepository';
-import { CharacterStatus } from '../../domain/entity/Character';
+import { Character, CharacterStatus } from '../../domain/entity/Character';
 import { AnimateCharacterCommand, CharacterCommandDTO } from '../../application/data/CharacterCommandDTO';
 import { InfrastructureError } from '../InfrastructureError';
 import { checkAuth } from '../../utils/checkAuth';
+import { DOSessionRepository } from './DOSessionRepository';
 
 const MAX_MESSAGE_SIZE = 1000;
-const MAX_LOGS_SIZE = 100;
 
 export interface Env {
 	ANIMATION_KV: KVNamespace;
@@ -23,10 +23,11 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 	// @ts-ignore
 	env: Env;
 	clients: Set<WebSocket>;
-	sessionRepo: KVSessionRepository;
 	logs: string[];
 	createdAt: string;
 	sessionId: string;
+	kvRepository: KVSessionRepository;
+	sessionRepository: DOSessionRepository;
 
 	constructor(state: DurableObjectState, env: any) {
 		super(state, env);
@@ -37,10 +38,15 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 		this.createdAt = new Date().toISOString();
 
 		this.sessionId = state.id.toString();
-		this.sessionRepo = new KVSessionRepository(env.ANIMATION_KV);
+		this.kvRepository = new KVSessionRepository(env.ANIMATION_KV);
+
+		this.sessionRepository = new DOSessionRepository(this.state);
+
+		// for debug
+		this.sessionRepository.initialize();
 
 		// init characters for domo purposes
-		this.sessionRepo.initialize();
+		// this.kvSessionRepository.initialize();
 	}
 
 	async fetch(request: Request): Promise<Response> {
@@ -72,7 +78,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 
 			switch (path) {
 				case '/state': {
-					const characters = await this.sessionRepo.listCharacters();
+					const characters = await this.sessionRepository.listCharacters();
 					const stateData = {
 						sessionId: this.sessionId,
 						characters: characters.map((char) => ({
@@ -86,7 +92,7 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 					});
 				}
 				case '/characters': {
-					const characters = await this.sessionRepo.listCharacters();
+					const characters = await this.sessionRepository.listCharacters();
 					return new Response(
 						JSON.stringify({
 							characters: characters
@@ -101,7 +107,18 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 					);
 				}
 				case '/logs': {
-					return new Response(JSON.stringify({ logs: this.logs }), { headers: { 'Content-Type': 'application/json' } });
+					const listResult = await this.env.ANIMATION_KV.list({ prefix: 'character-log-' });
+
+					const logs = await Promise.all(
+						listResult.keys.map(async (entry) => {
+							const raw = await this.env.ANIMATION_KV.get(entry.name);
+							return raw ? JSON.parse(raw) : null;
+						}),
+					);
+
+					return new Response(JSON.stringify({ logs: logs.filter(Boolean) }), {
+						headers: { 'Content-Type': 'application/json' },
+					});
 				}
 
 				default:
@@ -158,12 +175,10 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 		};
 
 		try {
-			const animateCharacter = new AnimateCharacter(this.sessionRepo);
+			const animateCharacter = new AnimateCharacter(this.sessionRepository);
 			const updatedCharacter = await animateCharacter.execute(animateDto);
-			const logEntry = `Command "${data.command}" executed on character "${data.characterId}" at ${new Date().toISOString()}`;
-			this.logs.push(logEntry);
-			// Limit the number of in-memory log entries
-			if (this.logs.length > MAX_LOGS_SIZE) this.logs.shift();
+
+			this.logCharacterState(updatedCharacter);
 
 			this.broadcast(
 				JSON.stringify({
@@ -186,6 +201,21 @@ export class AnimationSessionDO extends DurableObject<AnimationSessionDO> {
 				this.clients.delete(client);
 			}
 		}
+	}
+
+	private async logCharacterState(character: Character): Promise<void> {
+		const timestamp = Date.now();
+		const key = `character-log-${character.id}-${timestamp}`;
+		const logData = {
+			character: {
+				id: character.id,
+				name: character.name,
+				status: character.status,
+			},
+			timestamp: new Date(timestamp).toISOString(),
+		};
+
+		await this.env.ANIMATION_KV.put(key, JSON.stringify(logData));
 	}
 }
 

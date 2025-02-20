@@ -1,7 +1,7 @@
 import { ICharacterRepository } from '../../application/repository/ICharacterRepository';
-import { Character, CharacterStatus } from '../../domain/entity/Character';
-import { ApplicationError } from '../../application/ApplicationError';
+import { Character } from '../../domain/entity/Character';
 import { InfrastructureError } from '../InfrastructureError';
+import { parseCharacterStatus } from '../parseStatus';
 
 interface StoredCharacter {
 	id: string;
@@ -66,22 +66,5 @@ export class KVSessionRepository implements ICharacterRepository {
 			console.error(`Error updating character ${character.id}:`, error);
 			throw new InfrastructureError(`Failed to update character ${character.id}`);
 		}
-	}
-}
-
-function parseCharacterStatus(status: string): CharacterStatus {
-	const normalizedStatus = status.toLowerCase();
-
-	switch (normalizedStatus) {
-		case CharacterStatus.Active:
-			return CharacterStatus.Active;
-		case CharacterStatus.Stopped:
-			return CharacterStatus.Stopped;
-		case CharacterStatus.Rotating:
-			return CharacterStatus.Rotating;
-		case CharacterStatus.Moving:
-			return CharacterStatus.Moving;
-		default:
-			return CharacterStatus.Default;
 	}
 }
